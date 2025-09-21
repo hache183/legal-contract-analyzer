@@ -1,0 +1,255 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <!-- Header -->
+        <div class="d-flex justify-content-between align-items-start mb-4">
+            <div>
+                <h2>{{ contract.title }}</h2>
+                <p class="text-muted">
+                    <i class="fas fa-calendar me-1"></i>Caricato il {{ contract.uploaded_at|date:"d/m/Y H:i" }}
+                    {% if contract.analysis_date %}
+                        | <i class="fas fa-robot me-1"></i>Analizzato il {{ contract.analysis_date|date:"d/m/Y H:i" }}
+                    {% endif %}
+                </p>
+            </div>
+            <div>
+                <a href="{% url 'contract_list' %}" class="btn btn-outline-secondary me-2">
+                    <i class="fas fa-arrow-left me-1"></i>Torna alla Lista
+                </a>
+                {% if contract.analyzed %}
+                    <button data-contract-id="{{ contract.pk }}" id="reanalyze-btn" class="btn btn-outline-primary">
+                        <i class="fas fa-sync-alt me-1"></i>Rianalizza
+                    </button>
+                {% endif %}
+            </div>
+        </div>
+        
+        {% if not contract.analyzed %}
+            <div class="alert alert-warning">
+                <i class="fas fa-clock me-2"></i>
+                <strong>Analisi in corso...</strong> Il contratto è ancora in fase di elaborazione.
+                Ricarica la pagina tra qualche istante.
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<div class="row">
+    <!-- Colonna Principale -->
+    <div class="col-lg-8">
+        <!-- Informazioni Base -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5><i class="fas fa-info-circle me-2"></i>Informazioni Generali</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <p><strong>Tipo di Contratto:</strong></p>
+                        {% if contract.contract_type %}
+                            <span class="badge bg-secondary fs-6">{{ contract.get_contract_type_display }}</span>
+                        {% else %}
+                            <span class="text-muted">Non identificato</span>
+                        {% endif %}
+                    </div>
+                    <div class="col-md-6">
+                        <p><strong>Livello di Rischio:</strong></p>
+                        {% if contract.risk_level %}
+                            <span class="badge risk-{{ contract.risk_level }} risk-badge fs-6">
+                                <i class="fas fa-exclamation-triangle me-1"></i>
+                                {{ contract.get_risk_level_display }}
+                            </span>
+                        {% else %}
+                            <span class="text-muted">Non valutato</span>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                {% if contract.parties %}
+                    <hr>
+                    <p><strong>Parti Coinvolte:</strong></p>
+                    <p>{{ contract.parties }}</p>
+                {% endif %}
+                
+                {% if contract.duration %}
+                    <hr>
+                    <p><strong>Durata e Termini:</strong></p>
+                    <p>{{ contract.duration }}</p>
+                {% endif %}
+                
+                {% if contract.key_obligations %}
+                    <hr>
+                    <p><strong>Obblighi Principali:</strong></p>
+                    <p>{{ contract.key_obligations }}</p>
+                {% endif %}
+            </div>
+        </div>
+        
+        <!-- Analisi AI -->
+        {% if contract.ai_analysis %}
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5><i class="fas fa-robot me-2"></i>Analisi AI Dettagliata</h5>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-info">
+                        {{ contract.ai_analysis|linebreaks }}
+                    </div>
+                </div>
+            </div>
+        {% endif %}
+        
+        <!-- Clausole Rischiose -->
+        {% if risk_clauses %}
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5><i class="fas fa-exclamation-triangle me-2"></i>Clausole Rischiose Identificate</h5>
+                </div>
+                <div class="card-body">
+                    {% for clause in risk_clauses %}
+                        <div class="alert alert-warning border-start border-4 ps-3 mb-3">
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <h6>Clausola Rischiosa</h6>
+                                <span class="badge risk-{{ clause.severity }} risk-badge">
+                                    {{ clause.get_severity_display }}
+                                </span>
+                            </div>
+                            
+                            <p><strong>Testo:</strong></p>
+                            <blockquote class="border-start border-3 ps-3 mb-3 small">
+                                "{{ clause.clause_text }}"
+                            </blockquote>
+                            
+                            <p><strong>Rischio Identificato:</strong></p>
+                            <p>{{ clause.risk_description }}</p>
+                            
+                            <p><strong>Raccomandazione Legale:</strong></p>
+                            <p class="mb-0">{{ clause.recommendation }}</p>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        {% endif %}
+    </div>
+    
+    <!-- Sidebar -->
+    <div class="col-lg-4">
+        <!-- Scadenze -->
+        {% if deadlines %}
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h6><i class="fas fa-calendar-alt me-2"></i>Scadenze Importanti</h6>
+                </div>
+                <div class="card-body">
+                    {% for deadline in deadlines %}
+                        <div class="border-bottom pb-2 mb-2">
+                            <p class="mb-1"><strong>{{ deadline.description }}</strong></p>
+                            {% if deadline.date %}
+                                <small class="text-muted">
+                                    <i class="fas fa-clock me-1"></i>{{ deadline.date|date:"d/m/Y" }}
+                                </small>
+                            {% endif %}
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        {% endif %}
+        
+        <!-- Azioni Rapide -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h6><i class="fas fa-tools me-2"></i>Azioni Rapide</h6>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <button class="btn btn-outline-primary btn-sm" onclick="downloadReport()">
+                        <i class="fas fa-download me-1"></i>Scarica Report
+                    </button>
+                    <button class="btn btn-outline-info btn-sm" onclick="shareContract()">
+                        <i class="fas fa-share me-1"></i>Condividi Analisi
+                    </button>
+                    {% if contract.file %}
+                        <a href="{{ contract.file.url }}" target="_blank" class="btn btn-outline-secondary btn-sm">
+                            <i class="fas fa-file me-1"></i>Apri File Originale
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <!-- Legal-Tech Info -->
+        <div class="card">
+            <div class="card-body text-center">
+                <i class="fas fa-balance-scale fa-2x text-primary mb-2"></i>
+                <h6>Analisi Legal-Tech</h6>
+                <small class="text-muted">
+                    Analisi sviluppata con competenze specialistiche in Digital Law 
+                    e diritto civile italiano.
+                </small>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Utility: read CSRF token from cookie (Django's default behaviour)
+function getCookie(name) {
+    const value = `; ${document.cookie}`;
+    const parts = value.split(`; ${name}=`);
+    if (parts.length === 2) return parts.pop().split(';').shift();
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    const btn = document.getElementById('reanalyze-btn');
+    if (!btn) return;
+
+    btn.addEventListener('click', () => {
+        const contractId = btn.getAttribute('data-contract-id');
+        if (!contractId) {
+            console.error('Contract ID missing on reanalyze button');
+            return;
+        }
+
+        if (!confirm('Sei sicuro di voler rianalizzare questo contratto?')) return;
+
+        const csrftoken = getCookie('csrftoken');
+        fetch(`/contracts/${contractId}/reanalyze/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': csrftoken || '',
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({}),
+        })
+        .then(response => {
+            if (!response.ok) return response.json().then(err => Promise.reject(err));
+            return response.json();
+        })
+        .then(data => {
+            if (data && data.status === 'success') {
+                alert('Rianalisi avviata! Ricarico la pagina...');
+                location.reload();
+            } else {
+                alert('Errore nella rianalisi: ' + (data && data.message ? data.message : 'Errore sconosciuto'));
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Errore di connessione o server: ' + (error && error.message ? error.message : JSON.stringify(error)));
+        });
+    });
+});
+
+function downloadReport() {
+    alert('Funzionalità in sviluppo - Esportazione PDF del report');
+}
+
+function shareContract() {
+    alert('Funzionalità in sviluppo - Condivisione sicura dell\'analisi');
+}
+</script>
+{% endblock %}

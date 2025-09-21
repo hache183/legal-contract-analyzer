@@ -1,0 +1,59 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card shadow">
+            <div class="card-header bg-primary text-white">
+                <h3><i class="fas fa-upload me-2"></i>Carica Nuovo Contratto</h3>
+                <p class="mb-0">Upload di contratti PDF o DOCX per analisi automatica con AI</p>
+            </div>
+            <div class="card-body">
+                <form method="post" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    
+                    <div class="mb-3">
+                        <label for="{{ form.title.id_for_label }}" class="form-label">
+                            <i class="fas fa-tag me-1"></i>Titolo Contratto
+                        </label>
+                        {{ form.title }}
+                        {% if form.title.errors %}
+                            <div class="text-danger mt-1">{{ form.title.errors }}</div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label for="{{ form.file.id_for_label }}" class="form-label">
+                            <i class="fas fa-file me-1"></i>File Contratto
+                        </label>
+                        {{ form.file }}
+                        {% if form.file.errors %}
+                            <div class="text-danger mt-1">{{ form.file.errors }}</div>
+                        {% endif %}
+                        <div class="form-text">
+                            <i class="fas fa-info-circle me-1"></i>
+                            Formati supportati: PDF, DOCX. Dimensione massima: 10MB.
+                        </div>
+                    </div>
+                    
+                    <div class="alert alert-info">
+                        <i class="fas fa-robot me-2"></i>
+                        <strong>Analisi AI Automatica:</strong> Il sistema analizzerà automaticamente:
+                        <ul class="mb-0 mt-2">
+                            <li>Tipologia di contratto</li>
+                            <li>Parti coinvolte e obblighi</li>
+                            <li>Clausole rischiose</li>
+                            <li>Scadenze e termini</li>
+                            <li>Livello di rischio complessivo</li>
+                        </ul>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary btn-lg w-100">
+                        <i class="fas fa-upload me-2"></i>Carica e Analizza Contratto
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

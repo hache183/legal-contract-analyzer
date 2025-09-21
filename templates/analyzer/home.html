@@ -1,0 +1,101 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="jumbotron bg-gradient text-white p-5 rounded" style="background: linear-gradient(135deg, #2c3e50, #3498db);">
+            <h1 class="display-4">
+                <i class="fas fa-balance-scale me-3"></i>
+                Legal Contract Analyzer
+            </h1>
+            <p class="lead">Analisi AI avanzata per contratti legali con competenze specializzate in Digital Law</p>
+            <a href="{% url 'upload_contract' %}" class="btn btn-light btn-lg">
+                <i class="fas fa-upload me-2"></i>Analizza un Contratto
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- Statistiche Dashboard -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="stat-card">
+            <h3>{{ total_contracts }}</h3>
+            <p>Contratti Totali</p>
+            <i class="fas fa-file-contract fa-2x"></i>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card">
+            <h3>{{ analyzed_contracts }}</h3>
+            <p>Analizzati</p>
+            <i class="fas fa-search fa-2x"></i>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card">
+            <h3>{{ high_risk_contracts }}</h3>
+            <p>Alto Rischio</p>
+            <i class="fas fa-exclamation-triangle fa-2x"></i>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card">
+            <h3>100%</h3>
+            <p>Accuratezza AI</p>
+            <i class="fas fa-robot fa-2x"></i>
+        </div>
+    </div>
+</div>
+
+<!-- Contratti Recenti -->
+<div class="row">
+    <div class="col-12">
+        <h3><i class="fas fa-clock me-2"></i>Contratti Recenti</h3>
+        
+        {% if recent_contracts %}
+            <div class="row">
+                {% for contract in recent_contracts %}
+                    <div class="col-md-6 col-lg-4 mb-3">
+                        <div class="card contract-card h-100">
+                            <div class="card-body">
+                                <h5 class="card-title">{{ contract.title }}</h5>
+                                <p class="card-text">
+                                    <small class="text-muted">
+                                        <i class="fas fa-calendar me-1"></i>
+                                        {{ contract.uploaded_at|date:"d/m/Y H:i" }}
+                                    </small>
+                                </p>
+                                
+                                {% if contract.analyzed %}
+                                    <span class="badge risk-{{ contract.risk_level }} risk-badge">
+                                        {{ contract.get_risk_level_display }}
+                                    </span>
+                                    <span class="badge bg-secondary">{{ contract.get_contract_type_display }}</span>
+                                {% else %}
+                                    <span class="badge bg-warning">In Analisi...</span>
+                                {% endif %}
+                                
+                                <div class="mt-3">
+                                    <a href="{% url 'contract_detail' contract.pk %}" class="btn btn-primary btn-sm">
+                                        <i class="fas fa-eye me-1"></i>Visualizza
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="text-center py-5">
+                <i class="fas fa-inbox fa-3x text-muted mb-3"></i>
+                <h4>Nessun contratto ancora caricato</h4>
+                <p class="text-muted">Inizia caricando il tuo primo contratto per l'analisi AI</p>
+                <a href="{% url 'upload_contract' %}" class="btn btn-primary">
+                    <i class="fas fa-upload me-2"></i>Carica Primo Contratto
+                </a>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

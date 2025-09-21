@@ -1,0 +1,139 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2><i class="fas fa-list me-2"></i>Tutti i Contratti</h2>
+    <a href="{% url 'upload_contract' %}" class="btn btn-primary">
+        <i class="fas fa-plus me-2"></i>Nuovo Contratto
+    </a>
+</div>
+
+<!-- Filtri -->
+<div class="card mb-4">
+    <div class="card-body">
+        <form method="get" class="row g-3">
+            <div class="col-md-4">
+                <label class="form-label">Tipo Contratto</label>
+                <select name="type" class="form-select">
+                    <option value="">Tutti i tipi</option>
+                    {% for value, label in contract_types %}
+                        <option value="{{ value }}" {% if request.GET.type == value %}selected{% endif %}>
+                            {{ label }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-4">
+                <label class="form-label">Livello di Rischio</label>
+                <select name="risk" class="form-select">
+                    <option value="">Tutti i livelli</option>
+                    {% for value, label in risk_levels %}
+                        <option value="{{ value }}" {% if request.GET.risk == value %}selected{% endif %}>
+                            {{ label }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-4 d-flex align-items-end">
+                <button type="submit" class="btn btn-outline-primary me-2">
+                    <i class="fas fa-filter me-1"></i>Filtra
+                </button>
+                <a href="{% url 'contract_list' %}" class="btn btn-outline-secondary">Reset</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Lista Contratti -->
+{% if contracts %}
+    <div class="row">
+        {% for contract in contracts %}
+            <div class="col-md-6 col-lg-4 mb-4">
+                <div class="card contract-card h-100">
+                    <div class="card-body">
+                        <h5 class="card-title">{{ contract.title }}</h5>
+                        
+                        <div class="mb-2">
+                            {% if contract.analyzed %}
+                                <span class="badge risk-{{ contract.risk_level }} risk-badge">
+                                    {{ contract.get_risk_level_display }}
+                                </span>
+                                {% if contract.contract_type %}
+                                    <span class="badge bg-secondary">{{ contract.get_contract_type_display }}</span>
+                                {% endif %}
+                            {% else %}
+                                <span class="badge bg-warning">In Analisi...</span>
+                            {% endif %}
+                        </div>
+                        
+                        <p class="card-text">
+                            <small class="text-muted">
+                                <i class="fas fa-calendar me-1"></i>
+                                {{ contract.uploaded_at|date:"d/m/Y H:i" }}
+                            </small>
+                        </p>
+                        
+                        {% if contract.analyzed and contract.parties %}
+                            <p class="card-text small">
+                                <strong>Parti:</strong> {{ contract.parties|truncatewords:8 }}
+                            </p>
+                        {% endif %}
+                        
+                        <div class="mt-auto">
+                            <a href="{% url 'contract_detail' contract.pk %}" class="btn btn-primary btn-sm">
+                                <i class="fas fa-eye me-1"></i>Dettagli
+                            </a>
+                            
+                            {% if contract.analyzed %}
+                                <span class="text-success small ms-2">
+                                    <i class="fas fa-check-circle me-1"></i>Analizzato
+                                </span>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+    
+    <!-- Paginazione -->
+    {% if is_paginated %}
+        <nav aria-label="Paginazione contratti">
+            <ul class="pagination justify-content-center">
+                {% if page_obj.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.previous_page_number }}">Precedente</a>
+                    </li>
+                {% endif %}
+                
+                {% for num in page_obj.paginator.page_range %}
+                    {% if page_obj.number == num %}
+                        <li class="page-item active">
+                            <span class="page-link">{{ num }}</span>
+                        </li>
+                    {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+                        </li>
+                    {% endif %}
+                {% endfor %}
+                
+                {% if page_obj.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.next_page_number }}">Successivo</a>
+                    </li>
+                {% endif %}
+            </ul>
+        </nav>
+    {% endif %}
+{% else %}
+    <div class="text-center py-5">
+        <i class="fas fa-search fa-3x text-muted mb-3"></i>
+        <h4>Nessun contratto trovato</h4>
+        <p class="text-muted">Prova a modificare i filtri o carica un nuovo contratto</p>
+        <a href="{% url 'upload_contract' %}" class="btn btn-primary">
+            <i class="fas fa-upload me-2"></i>Carica Contratto
+        </a>
+    </div>
+{% endif %}
+{% endblock %}
