@@ -107,8 +107,16 @@ def analyze_contract_ai(contract_id):
                     # Note: parsing delle date richiederebbe logica aggiuntiva
                 )
             
-            # Calcola livello di rischio
-            contract.risk_level = ContractAIService.calculate_risk_level(risk_clauses_data)
+            # Calcola livello di rischio in base alle clausole trovate
+            high_risk_count = sum(1 for clause in risk_clauses_data if clause.get('severity') in ['high', 'critical'])
+            if high_risk_count >= 3:
+                contract.risk_level = 'critical'
+            elif high_risk_count >= 2:
+                contract.risk_level = 'high'
+            elif high_risk_count >= 1:
+                contract.risk_level = 'medium'
+            else:
+                contract.risk_level = 'low'
             
         except json.JSONDecodeError:
             # Se la risposta non è JSON valido, salva come testo
@@ -121,11 +129,14 @@ def analyze_contract_ai(contract_id):
         
     except Exception as e:
         logger.error(f"Errore nell'analisi AI del contratto {contract_id}: {str(e)}")
-        contract = Contract.objects.get(id=contract_id)
-        contract.ai_analysis = f"Errore nell'analisi automatica: {str(e)}"
-        contract.analyzed = True
-        contract.analysis_date = timezone.now()
-        contract.save()
+        try:
+            contract = Contract.objects.get(id=contract_id)
+            contract.ai_analysis = f"Errore nell'analisi automatica: {str(e)}"
+            contract.analyzed = True
+            contract.analysis_date = timezone.now()
+            contract.save()
+        except Contract.DoesNotExist:
+            logger.error(f"Contratto {contract_id} non trovato durante gestione errore")
 
 class ContractListView(ListView):
     model = Contract
@@ -174,6 +185,16 @@ def reanalyze_contract(request, pk):
         # Cancella analisi precedente
         contract.risk_clauses.all().delete()
         contract.deadlines.all().delete()
+        
+        # Reset dei campi di analisi
+        contract.analyzed = False
+        contract.analysis_date = None
+        contract.ai_analysis = ''
+        contract.parties = ''
+        contract.duration = ''
+        contract.key_obligations = ''
+        contract.risk_level = ''
+        contract.save()
         
         # Rianalizza
         analyze_contract_ai(contract.id)

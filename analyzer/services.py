@@ -74,22 +74,28 @@ class ContractAIService:
         """Identifica il tipo di contratto"""
         text_lower = text.lower()
         
-        if any(word in text_lower for word in ['compravendita', 'vendita', 'acquisto']):
-            return 'purchase'
-        elif any(word in text_lower for word in ['prestazione', 'servizio', 'consulenza']):
-            return 'service'
-        elif any(word in text_lower for word in ['lavoro', 'dipendente', 'assunzione']):
-            return 'employment'
-        elif any(word in text_lower for word in ['locazione', 'affitto', 'noleggio']):
-            return 'rental'
-        elif any(word in text_lower for word in ['riservatezza', 'confidenzialità', 'nda']):
-            return 'nda'
-        elif any(word in text_lower for word in ['partnership', 'collaborazione', 'joint']):
-            return 'partnership'
-        elif any(word in text_lower for word in ['licenza', 'concessione', 'diritti']):
-            return 'license'
-        else:
-            return 'other'
+@staticmethod
+def extract_contract_type(text):
+    """Identifica il tipo di contratto"""
+    text_lower = text.lower()
+    
+    # Aggiungi più varianti per servizi informatici
+    if any(word in text_lower for word in ['compravendita', 'vendita', 'acquisto']):
+        return 'purchase'
+    elif any(word in text_lower for word in ['prestazione', 'servizio', 'consulenza', 'informatici', 'software', 'sviluppo', 'manutenzione']):
+        return 'service'
+    elif any(word in text_lower for word in ['lavoro', 'dipendente', 'assunzione']):
+        return 'employment'
+    elif any(word in text_lower for word in ['locazione', 'affitto', 'noleggio']):
+        return 'rental'
+    elif any(word in text_lower for word in ['riservatezza', 'confidenzialità', 'nda']):
+        return 'nda'
+    elif any(word in text_lower for word in ['partnership', 'collaborazione', 'joint']):
+        return 'partnership'
+    elif any(word in text_lower for word in ['licenza', 'concessione', 'diritti']):
+        return 'license'
+    else:
+        return 'other'
     
     @staticmethod
     def calculate_risk_level(risk_clauses):

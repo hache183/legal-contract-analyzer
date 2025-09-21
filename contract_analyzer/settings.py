@@ -1,4 +1,5 @@
 import os
+from pathlib import Path  # ← AGGIUNGI QUESTA RIGA
 from decouple import config
 
 # Build paths inside the project.

@@ -94,9 +94,9 @@
                     <h5><i class="fas fa-robot me-2"></i>Analisi AI Dettagliata</h5>
                 </div>
                 <div class="card-body">
-                    <div class="alert alert-info">
-                        {{ contract.ai_analysis|linebreaks }}
-                    </div>
+                  <div class="json-display">
+                   {{ contract.ai_analysis }}
+                  </div>
                 </div>
             </div>
         {% endif %}
