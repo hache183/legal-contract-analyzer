@@ -1,10 +1,5 @@
 import openai
-import re
-from datetime import datetime, timedelta
-from django.conf import settings
 from decouple import config
-
-openai.api_key = config('OPENAI_API_KEY')
 
 class ContractAIService:
     
@@ -12,11 +7,14 @@ class ContractAIService:
     def analyze_contract(text):
         """Analisi completa del contratto con AI"""
         
+        # Configura OpenAI per la versione 0.28
+        openai.api_key = config('OPENAI_API_KEY')
+        
         prompt = f"""
         Analizza questo contratto legale in italiano con la competenza di un avvocato specializzato in diritto civile e commerciale.
         
         TESTO DEL CONTRATTO:
-        {text[:4000]}  # Limitiamo per evitare token limit
+        {text[:4000]}
         
         Fornisci un'analisi strutturata in formato JSON con le seguenti chiavi:
         
@@ -54,7 +52,7 @@ class ContractAIService:
         """
         
         try:
-            response = openai.chat.completions.create(
+            response = openai.ChatCompletion.create(
                 model="gpt-3.5-turbo",
                 messages=[
                     {"role": "system", "content": "Sei un avvocato esperto in diritto civile e commerciale italiano. Analizza i contratti con precisione tecnica e linguaggio professionale ma accessibile."},
@@ -74,7 +72,6 @@ class ContractAIService:
         """Identifica il tipo di contratto"""
         text_lower = text.lower()
         
-        # Aggiungi più varianti per servizi informatici
         if any(word in text_lower for word in ['compravendita', 'vendita', 'acquisto']):
             return 'purchase'
         elif any(word in text_lower for word in ['prestazione', 'servizio', 'consulenza', 'informatici', 'software', 'sviluppo', 'manutenzione']):
