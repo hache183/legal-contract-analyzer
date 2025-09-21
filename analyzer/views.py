@@ -76,16 +76,23 @@ def analyze_contract_ai(contract_id):
         # Analisi AI
         ai_response = ContractAIService.analyze_contract(contract.extracted_text)
         
+        # Salva sempre la risposta grezza per debug
+        contract.ai_analysis = ai_response
+        
         try:
+            # Rimuovi eventuali markdown wrapper
+            cleaned_response = ai_response.strip()
+            if cleaned_response.startswith('```json'):
+                cleaned_response = cleaned_response.replace('```json', '').replace('```', '').strip()
+            
             # Parsing della risposta JSON
-            ai_data = json.loads(ai_response)
+            ai_data = json.loads(cleaned_response)
             
             # Aggiorna il contratto con i risultati
             contract.contract_type = ContractAIService.extract_contract_type(contract.extracted_text)
             contract.parties = ai_data.get('parties', '')
             contract.duration = ai_data.get('duration', '')
             contract.key_obligations = ai_data.get('key_obligations', '')
-            contract.ai_analysis = ai_data.get('summary', '')
             
             # Salva clausole rischiose
             risk_clauses_data = ai_data.get('risk_clauses', [])
@@ -104,7 +111,6 @@ def analyze_contract_ai(contract_id):
                 Deadline.objects.create(
                     contract=contract,
                     description=deadline_data.get('description', ''),
-                    # Note: parsing delle date richiederebbe logica aggiuntiva
                 )
             
             # Calcola livello di rischio in base alle clausole trovate
@@ -118,10 +124,12 @@ def analyze_contract_ai(contract_id):
             else:
                 contract.risk_level = 'low'
             
-        except json.JSONDecodeError:
-            # Se la risposta non è JSON valido, salva come testo
-            contract.ai_analysis = ai_response
-            contract.risk_level = 'medium'  # Default
+        except json.JSONDecodeError as e:
+            print(f"Errore JSON parsing: {e}")
+            print(f"Risposta AI: {ai_response[:500]}...")
+            # Se la risposta non è JSON valido, usa valori di default
+            contract.risk_level = 'medium'
+            contract.contract_type = ContractAIService.extract_contract_type(contract.extracted_text)
         
         contract.analyzed = True
         contract.analysis_date = timezone.now()
@@ -134,6 +142,8 @@ def analyze_contract_ai(contract_id):
             contract.ai_analysis = f"Errore nell'analisi automatica: {str(e)}"
             contract.analyzed = True
             contract.analysis_date = timezone.now()
+            contract.risk_level = 'medium'
+            contract.contract_type = 'other'
             contract.save()
         except Contract.DoesNotExist:
             logger.error(f"Contratto {contract_id} non trovato durante gestione errore")

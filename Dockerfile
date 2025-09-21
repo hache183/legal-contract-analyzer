@@ -14,11 +14,14 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copia il codice
 COPY . .
 
-# Crea directory per media files
-RUN mkdir -p media/contracts
+# Crea directory per media e static files
+RUN mkdir -p media/contracts static
+
+# Colleziona file statici
+RUN python manage.py collectstatic --noinput --settings=contract_analyzer.settings
 
 # Espone la porta
 EXPOSE 8000
 
 # Comando di avvio
-CMD ["python", "manage.py", "runserver", "0.0.0.0:8000"]
+CMD ["gunicorn", "--bind", "0.0.0.0:8000", "contract_analyzer.wsgi:application"]

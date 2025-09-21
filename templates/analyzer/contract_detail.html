@@ -87,19 +87,35 @@
             </div>
         </div>
         
-        <!-- Analisi AI -->
-        {% if contract.ai_analysis %}
-            <div class="card mb-4">
-                <div class="card-header">
-                    <h5><i class="fas fa-robot me-2"></i>Analisi AI Dettagliata</h5>
+<!-- Analisi AI -->
+{% if contract.ai_analysis %}
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5><i class="fas fa-robot me-2"></i>Rapporto Tecnico AI</h5>
+        </div>
+        <div class="card-body">
+            <div class="alert alert-info mb-3">
+                <i class="fas fa-info-circle me-2"></i>
+                <strong>Analisi Strutturata:</strong> Questo rapporto mostra l'output grezzo dell'intelligenza artificiale, 
+                utile per verificare la logica di analisi e per debugging tecnico.
+            </div>
+            
+            <div class="ai-report-container">
+                <div class="report-header">
+                    <i class="fas fa-code me-2"></i>
+                    <span>Output AI Strutturato</span>
+                    <button class="btn btn-sm btn-outline-secondary ms-2" onclick="toggleAIReport()">
+                        <i class="fas fa-expand-alt me-1"></i>Espandi/Comprimi
+                    </button>
                 </div>
-                <div class="card-body">
-                  <div class="json-display">
-                   {{ contract.ai_analysis }}
-                  </div>
+                
+                <div id="ai-report-content" class="ai-report-content">
+                    <pre class="ai-json-output">{{ contract.ai_analysis }}</pre>
                 </div>
             </div>
-        {% endif %}
+        </div>
+    </div>
+{% endif %}
         
         <!-- Clausole Rischiose -->
         {% if risk_clauses %}
@@ -250,6 +266,22 @@ function downloadReport() {
 
 function shareContract() {
     alert('Funzionalità in sviluppo - Condivisione sicura dell\'analisi');
+}
+
+function toggleAIReport() {
+    const content = document.getElementById('ai-report-content');
+    const button = event.target.closest('button');
+    const icon = button.querySelector('i');
+    
+    content.classList.toggle('expanded');
+    
+    if (content.classList.contains('expanded')) {
+        icon.className = 'fas fa-compress-alt me-1';
+        button.innerHTML = '<i class="fas fa-compress-alt me-1"></i>Comprimi';
+    } else {
+        icon.className = 'fas fa-expand-alt me-1';
+        button.innerHTML = '<i class="fas fa-expand-alt me-1"></i>Espandi';
+    }
 }
 </script>
 {% endblock %}
